@@ -1,0 +1,3 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+{ middleware and ingressroute configuration }
