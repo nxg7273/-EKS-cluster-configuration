@@ -33,8 +33,8 @@ metadata:
   namespace: traefikee
 type: Opaque
 data:
-  cookie_secret: '"$COOKIE_SECRET_B64"'
-  client_secret: '"$CLIENT_SECRET_B64"'
+  cookie_secret: RGk0OFE5S0xjU1gwS25nLTRBekVBUEt1N05RSGcxY3habnIyRmFvSQ==
+  client_secret: RGk0OFE5S0xjU1gwS25nLTRBekVBUEt1N05RSGcxY3habnIyRmFvSQ==
 ---
 apiVersion: apps/v1
 kind: Deployment
