@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy
+  namespace: traefikee
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy
+    spec:
+      containers:
+      - name: oauth2-proxy
+        image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0
+        ports:
+        - containerPort: 4180
+          protocol: TCP
+        env:
+        - name: OAUTH2_PROXY_CONFIG
+          value: /etc/oauth2-proxy/oauth2_proxy.cfg
+        volumeMounts:
+        - name: config
+          mountPath: /etc/oauth2-proxy
+        - name: secrets
+          mountPath: /etc/secrets
+          readOnly: true
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 4180
+          initialDelaySeconds: 3
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 4180
+          initialDelaySeconds: 3
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: oauth2-proxy-config
+      - name: secrets
+        secret:
+          secretName: oauth2-proxy-secrets

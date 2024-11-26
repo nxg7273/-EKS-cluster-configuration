@@ -1,0 +1,14 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth2-auth
+  namespace: traefikee
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy.traefikee.svc.cluster.local:4180
+    authResponseHeaders:
+      - X-Auth-Request-Access-Token
+      - Authorization
+      - X-Auth-Request-User
+      - X-Auth-Request-Email
+    trustForwardHeader: true
