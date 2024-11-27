@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: oauth2-verify
+  namespace: traefikee
+spec:
+  containers:
+  - name: curl
+    image: curlimages/curl:8.00.1
+    command: ["/bin/sh", "-c"]
+    args:
+    - |
+      echo "Starting OAuth2 verification tests..."
+
+      # Test redirect to login
+      echo "Testing redirect to login page..."
+      curl -v -k https://bioactives-dev.iff.com/api/test 2>&1 | grep -i "location:"
+
+      # Test callback endpoint
+      echo "Testing callback endpoint..."
+      curl -v -k https://bioactives-dev.iff.com/oauth2/callback 2>&1 | grep -i "oauth"
+
+      # Keep pod running for debugging
+      echo "Tests complete. Pod will remain running for inspection."
+      sleep 3600
+  restartPolicy: Never
