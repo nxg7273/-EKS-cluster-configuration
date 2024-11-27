@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: auth-test-final
+  namespace: traefikee
+  labels:
+    role: test
+spec:
+  containers:
+  - name: curl
+    image: curlimages/curl:8.00.1
+    command: ["/bin/sh", "-c"]
+    args:
+    - |
+      echo "Testing OAuth2 authentication flow..."
+      echo "Attempting to access protected endpoint..."
+      curl -v -k https://bioactives-dev.iff.com/api/test
+      echo "Testing OAuth2 callback endpoint..."
+      curl -v -k https://bioactives-dev.iff.com/oauth2/callback
+      echo "Sleeping to keep pod running for inspection..."
+      sleep 3600
+  restartPolicy: Never
