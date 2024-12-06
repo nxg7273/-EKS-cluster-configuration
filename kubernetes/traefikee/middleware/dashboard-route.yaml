@@ -1,0 +1,18 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: dashboard-tls
+  namespace: traefikee
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`bioactives-dev.iff.com`) && PathPrefix(`/dashboard`)
+      kind: Rule
+      services:
+        - name: protein-engineering-cluster-new-proxy-svc
+          port: 80
+      middlewares:
+        - name: ms-entra-oidc
+          namespace: traefikee
+  tls: {}
