@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy-dev
+  namespace: traefikee
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy-dev
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy-dev
+    spec:
+      containers:
+      - name: oauth2-proxy
+        image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0
+        args:
+        - --provider=azure
+        - --azure-tenant=a2a9bf31-fc44-425c-a6d2-3ae9379573ea
+        - --oidc-issuer-url=https://login.microsoftonline.com/a2a9bf31-fc44-425c-a6d2-3ae9379573ea/v2.0
+        - --email-domain=*
+        - --cookie-secure=true
+        - --cookie-domain=bioactives-dev.iff.com
+        - --cookie-name=_oauth2_proxy_bioactives_dev
+        - --whitelist-domain=bioactives-dev.iff.com
+        - --redirect-url=https://bioactives-dev.iff.com/oauth2/callback
+        - --upstream=file:///dev/null
+        - --http-address=0.0.0.0:4180
+        - --pass-access-token=true
+        - --pass-authorization-header=true
+        - --pass-user-headers=true
+        - --set-authorization-header=true
+        - --set-xauthrequest=true
+        ports:
+        - name: http
+          containerPort: 4180
+        env:
+        - name: OAUTH2_PROXY_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: oauth2-proxy-secrets-dev
+              key: OAUTH2_PROXY_CLIENT_ID
+        - name: OAUTH2_PROXY_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oauth2-proxy-secrets-dev
+              key: OAUTH2_PROXY_CLIENT_SECRET
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oauth2-proxy-secrets-dev
+              key: OAUTH2_PROXY_COOKIE_SECRET
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 4180
+          initialDelaySeconds: 3
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 4180
+          initialDelaySeconds: 3
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy-dev
+  namespace: traefikee
+spec:
+  ports:
+  - name: http
+    port: 4180
+    targetPort: 4180
+  selector:
+    app: oauth2-proxy-dev
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth2-auth-dev
+  namespace: traefikee
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy-dev.traefikee.svc.cluster.local:4180
+    authResponseHeaders:
+      - X-Auth-Request-User
+      - X-Auth-Request-Email
+      - Authorization

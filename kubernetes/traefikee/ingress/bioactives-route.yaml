@@ -1,0 +1,46 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bioactives-route
+  namespace: traefikee
+  labels:
+    app: traefikee
+    release: bioactives-prod
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`bioactives-dev.iff.com`) && PathPrefix(`/oauth2/sign_in`, `/oauth2/start`, `/oauth2/auth`, `/oauth2/callback`)
+      priority: 100
+      services:
+        - name: oauth2-proxy-dev
+          passHostHeader: true
+          port: 4180
+          scheme: http
+    - kind: Rule
+      match: Host(`bioactives-dev.iff.com`) && PathPrefix(`/api`)
+      middlewares:
+        - name: oauth2-auth-dev
+          namespace: traefikee
+        - name: strip-api-prefix
+          namespace: traefikee
+      priority: 90
+      services:
+        - name: test-backend
+          passHostHeader: true
+          port: 80
+          scheme: http
+    - kind: Rule
+      match: Host(`bioactives-dev.iff.com`)
+      middlewares:
+        - name: oauth2-auth-dev
+          namespace: traefikee
+      priority: 1
+      services:
+        - name: test-backend
+          passHostHeader: true
+          port: 80
+          scheme: http
+  tls:
+    secretName: bioactives-tls
